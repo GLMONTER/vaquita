@@ -29,7 +29,7 @@ void opcontrol()
 	lv_img_set_src(im, &vaquita);
 	lv_obj_set_pos(im, 0, 0);
 	lv_obj_set_drag(im, true);
-	//std::cerr<<"hi";
+
 	while(true)
 	{
 		rightFront.move(con.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_Y));
@@ -37,6 +37,8 @@ void opcontrol()
 
 		leftFront.move(con.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y));
 		leftBack.move(con.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y));
+
+		//se we can update the lvgl thread
 		pros::Task::delay(10);
 	}
 }
