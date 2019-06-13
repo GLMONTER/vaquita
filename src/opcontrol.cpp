@@ -11,27 +11,27 @@ pros::Motor leftBack(12, pros::E_MOTOR_GEARSET_18, false);
 pros::Motor leftLift(1, pros::E_MOTOR_GEARSET_36, false);
 pros::Motor rightLift(10, pros::E_MOTOR_GEARSET_36, true);
 
-pros::Controller con(pros::E_CONTROLLER_MASTER);
+pros::Controller controller(pros::E_CONTROLLER_MASTER);
 
 //a function that polls the controller for lift related controlls
-void pollLife()
+void pollLift()
 {
 	//if the left top buttton, move lift down
-	if(con.get_digital(pros::E_CONTROLLER_DIGITAL_L1) && !con.get_digital(pros::E_CONTROLLER_DIGITAL_R1))
+	if(controller.get_digital(pros::E_CONTROLLER_DIGITAL_L1) && !controller.get_digital(pros::E_CONTROLLER_DIGITAL_R1))
 	{
 		leftLift.move(-127);
 		rightLift.move(-127);
 	}
 	else
 	//if the right top button, move lift up
-	if(!con.get_digital(pros::E_CONTROLLER_DIGITAL_L1) && con.get_digital(pros::E_CONTROLLER_DIGITAL_R1))
+	if(!controller.get_digital(pros::E_CONTROLLER_DIGITAL_L1) && controller.get_digital(pros::E_CONTROLLER_DIGITAL_R1))
 	{
 		leftLift.move(127);
 		rightLift.move(127);
 	}
 	else
 	//if no life related input, make the life hold it's position, (Hold brake mode)
-	if(!con.get_digital(pros::E_CONTROLLER_DIGITAL_L1) && !con.get_digital(pros::E_CONTROLLER_DIGITAL_R1))
+	if(!controller.get_digital(pros::E_CONTROLLER_DIGITAL_L1) && !controller.get_digital(pros::E_CONTROLLER_DIGITAL_R1))
 	{
 		leftLift.move_velocity(0);
 		rightLift.move_velocity(0);
@@ -59,15 +59,15 @@ void opcontrol()
 
 	while(true)
 	{
-		rightFront.move(con.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_Y));
-		rightBack.move(con.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_Y));
+		rightFront.move(controller.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_Y));
+		rightBack.move(controller.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_Y));
 
-		leftFront.move(con.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y));
-		leftBack.move(con.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y));
+		leftFront.move(controller.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y));
+		leftBack.move(controller.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y));
 
 		std::string temp  = std::to_string(leftLift.get_temperature());
 		lv_label_set_text(label, temp.c_str());
-		pollLife();
+		pollLift();
 		//se we can update the lvgl thread
 		pros::Task::delay(10);
 	}
