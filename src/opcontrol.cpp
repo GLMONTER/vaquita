@@ -1,15 +1,15 @@
 #include "main.h"
 #include"display/lvgl.h"
 
-pros::Motor rightFront(5, pros::E_MOTOR_GEARSET_18, true);
-pros::Motor rightBack(6, pros::E_MOTOR_GEARSET_18, true);
+pros::Motor rightFront(1, pros::E_MOTOR_GEARSET_18, true);
+pros::Motor rightBack(10, pros::E_MOTOR_GEARSET_18, true);
 
-pros::Motor leftFront(14, pros::E_MOTOR_GEARSET_18, false);
-pros::Motor leftBack(12, pros::E_MOTOR_GEARSET_18, false);
+pros::Motor leftFront(20, pros::E_MOTOR_GEARSET_18, false);
+pros::Motor leftBack(11, pros::E_MOTOR_GEARSET_18, false);
 
-
-pros::Motor leftLift(1, pros::E_MOTOR_GEARSET_36, false);
-pros::Motor rightLift(10, pros::E_MOTOR_GEARSET_36, true);
+//pros::Motor rightPuller()
+pros::Motor leftLift(21, pros::E_MOTOR_GEARSET_36, false);
+pros::Motor rightLift(18, pros::E_MOTOR_GEARSET_36, true);
 
 pros::Controller controller(pros::E_CONTROLLER_MASTER);
 
