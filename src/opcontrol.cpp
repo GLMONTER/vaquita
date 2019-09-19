@@ -4,17 +4,17 @@
 static bool buttonPressed = false;
 static bool buttonToggle = false;
 
-
 pros::Motor rightFront(10, pros::E_MOTOR_GEARSET_18, true);
 pros::Motor rightBack(19, pros::E_MOTOR_GEARSET_18, true);
 
 pros::Motor leftFront(1, pros::E_MOTOR_GEARSET_18, false);
 pros::Motor leftBack(12, pros::E_MOTOR_GEARSET_18, false);
 
-pros::Motor leftLift(20, pros::E_MOTOR_GEARSET_36, false);
-pros::Motor rightLift(11, pros::E_MOTOR_GEARSET_36, true);
+pros::Motor leftLift(11, pros::E_MOTOR_GEARSET_36, false);
+pros::Motor rightLift(20, pros::E_MOTOR_GEARSET_36, true);
 
 pros::Motor liftRot(21, pros::E_MOTOR_GEARSET_36, true);
+pros::Motor loaderRot(16, pros::E_MOTOR_GEARSET_36, true);
 
 pros::Controller controller(pros::E_CONTROLLER_MASTER);
 
@@ -36,23 +36,42 @@ void pollLift()
 		rightLift.move(127);
 	}
 	else
-	//if no life related input, make the life hold it's position, (Hold brake mode)
+	//if no life related input, make the lift hold it's position, (Hold brake mode)
 	if(!controller.get_digital(pros::E_CONTROLLER_DIGITAL_L1) && !controller.get_digital(pros::E_CONTROLLER_DIGITAL_R1))
 	{
-		leftLift.move_velocity(0);
-		rightLift.move_velocity(0);
+		leftLift.move(0);
+		rightLift.move(0);
 	}
+	
 	if(controller.get_digital(pros::E_CONTROLLER_DIGITAL_A))
 	{
 		liftRot.move(60);
 	}
+	else
 	if(controller.get_digital(pros::E_CONTROLLER_DIGITAL_B))
 	{
 		liftRot.move(-60);
 	}
+	else
 	if(!controller.get_digital(pros::E_CONTROLLER_DIGITAL_B) && !controller.get_digital(pros::E_CONTROLLER_DIGITAL_A) && !buttonToggle)
 	{
 		liftRot.move_velocity(0);
+	}
+
+	//for the loaders
+	if(controller.get_digital(pros::E_CONTROLLER_DIGITAL_X))
+	{
+		loaderRot.move(60);
+	}
+	else
+	if(controller.get_digital(pros::E_CONTROLLER_DIGITAL_Y))
+	{
+		loaderRot.move(-60);
+	}
+	else
+	if(!controller.get_digital(pros::E_CONTROLLER_DIGITAL_Y) && !controller.get_digital(pros::E_CONTROLLER_DIGITAL_X) && !buttonToggle)
+	{
+		loaderRot.move_velocity(0);
 	}
 }
 
@@ -76,6 +95,7 @@ void opcontrol()
 	lv_obj_align(label2, NULL, LV_ALIGN_CENTER, 0, 50);
 
 	liftRot.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+	loaderRot.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 
 	while(true)
 	{
@@ -92,31 +112,22 @@ void opcontrol()
 		lv_label_set_text(label2, temp.c_str());
 		pollLift();
 
-
-		//go forward with drum
 	if(controller.get_digital(pros::E_CONTROLLER_DIGITAL_L2))
 	{
-		//if the forward button toggle isn't on then continute
 		if(!buttonPressed)
 		{
-			//actaully flip the toggle, this is why the type has to be int
 			buttonToggle = 1 - buttonToggle;
-			//changed button pressed to true
 			buttonPressed = 1;
-			//change the backward toggle to false so we don't try to go backwards and forwards
 			buttonToggle = false;
 		}
 	}
-	//switch back to normal buttton state but leave toggle on if button isn't pressed.
 	else
 		buttonPressed = 0;
+
 	if(buttonToggle)
 	{
 		liftRot.move(controller.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y));
 	}
-
-
-		//se we can update the lvgl thread
 		pros::Task::delay(10);
 	}
 }
