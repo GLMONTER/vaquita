@@ -6,11 +6,13 @@
 static bool buttonPressed = false;
 static bool buttonToggle = false;
 
-pros::Motor rightFront(10, pros::E_MOTOR_GEARSET_18, true);
 pros::Motor rightBack(19, pros::E_MOTOR_GEARSET_18, true);
 
-pros::Motor leftFront(1, pros::E_MOTOR_GEARSET_18, false);
 pros::Motor leftBack(12, pros::E_MOTOR_GEARSET_18, false);
+
+pros::Motor rightFront(18, pros::E_MOTOR_GEARSET_18, true);
+
+pros::Motor leftFront(13, pros::E_MOTOR_GEARSET_18, false);
 
 pros::Motor leftLift(11, pros::E_MOTOR_GEARSET_36, false);
 pros::Motor rightLift(20, pros::E_MOTOR_GEARSET_36, true);
@@ -56,15 +58,15 @@ void pollLift()
 	//if the left top buttton, move lift down
 	if(controller.get_digital(pros::E_CONTROLLER_DIGITAL_L1) && !controller.get_digital(pros::E_CONTROLLER_DIGITAL_R1))
 	{
-		leftLift.move(-127);
-		rightLift.move(-127);
+		leftLift.move(127);
+		rightLift.move(127);
 	}
 	else
 	//if the right top button, move lift up
 	if(!controller.get_digital(pros::E_CONTROLLER_DIGITAL_L1) && controller.get_digital(pros::E_CONTROLLER_DIGITAL_R1))
 	{
-		leftLift.move(127);
-		rightLift.move(127);
+		leftLift.move(-127);
+		rightLift.move(-127);
 	}
 	else
 	//if no life related input, make the lift hold it's position, (Hold brake mode)
@@ -74,21 +76,21 @@ void pollLift()
 		rightLift.move(0);
 	}
 
-	if(controller.get_digital(pros::E_CONTROLLER_DIGITAL_A))
+	if(controller.get_digital(pros::E_CONTROLLER_DIGITAL_R2))
 	{
 		liftRot.move(127);
 		liftRot2.move(127);
 
 	}
 	else
-	if(controller.get_digital(pros::E_CONTROLLER_DIGITAL_B))
+	if(controller.get_digital(pros::E_CONTROLLER_DIGITAL_L2))
 	{
 		liftRot.move(-127);
 		liftRot.move(-127);
 
 	}
 	else
-	if(!controller.get_digital(pros::E_CONTROLLER_DIGITAL_B) && !controller.get_digital(pros::E_CONTROLLER_DIGITAL_A) && !buttonToggle)
+	if(!controller.get_digital(pros::E_CONTROLLER_DIGITAL_L2) && !controller.get_digital(pros::E_CONTROLLER_DIGITAL_R2) && !buttonToggle)
 	{
 		liftRot.move_velocity(0);
 		liftRot2.move_velocity(0);
@@ -136,11 +138,11 @@ void opcontrol()
 
 	while(true)
 	{
-		rightFront.move(controller.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_Y));
 		rightBack.move(controller.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_Y));
-
-		leftFront.move(controller.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y));
 		leftBack.move(controller.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y));
+
+		rightFront.move(controller.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_Y));
+		leftFront.move(controller.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y));
 
 		std::string temp  = "Lift Temp : " + std::to_string(liftRot.get_temperature()) +  " C°";
 		lv_label_set_text(label, temp.c_str());
