@@ -63,19 +63,6 @@
 extern "C" {
 #endif
 
-extern pros::Motor rightFront;
-extern pros::Motor rightBack;
-
-extern pros::Motor leftFront;
-extern pros::Motor leftBack;
-
-extern pros::Motor leftLift;
-extern pros::Motor rightLift;
-
-extern pros::Motor liftRot;
-
-extern pros::Controller controller;
-
 
 void autonomous(void);
 void initialize(void);
