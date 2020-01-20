@@ -25,28 +25,20 @@ const static pros::Motor loaderRot(11, pros::E_MOTOR_GEARSET_36, true);
 //main controller object
 static pros::Controller controller(pros::E_CONTROLLER_MASTER);
 
-//old chassis controller
-/*
-static ChassisControllerIntegrated chassis = ChassisControllerFactory::create(
-  {19, 20}, {-9, -10},
-  AbstractMotor::gearset::green,
-  {3_in, 10.25_in}
-);
-*/
 
 //pid chassis controller.
-static auto chassis = ChassisControllerFactory::create(
-  {19, 20}, {-9, -10},
-  IterativePosPIDController::Gains{0.015, 0.0022, 0.0001},
-  IterativePosPIDController::Gains{0.001, 0, 0.0001},
-  IterativePosPIDController::Gains{0.015, 0.0022, 0.0001},
-  AbstractMotor::gearset::green,
-  {3_in, 10.25_in}
-);
+auto chassis = ChassisControllerBuilder()
+    .withMotors({19, 20}, {-9, -10})
+    // Green gearset, 4 in wheel diam, 11.5 in wheel track
+    .withDimensions(AbstractMotor::gearset::green, {{3_in, 10.25_in}, imev5GreenTPR})
+    .withGains({0.015, 0.0022, 0.0001}, {0.001, 0, 0.0001}, {0.015, 0.0022, 0.0001})
+    .build();
+
+
 
 //time variables for rumble sequence
 static int isTime = 0;
-static int time = 0;
+static int Time = 0;
 
 static void controllerPoll()
 {
@@ -60,10 +52,10 @@ static void controllerPoll()
         controller.rumble("- -");
     }
     isTime += 10;
-    time += 5;
-    if(time == 500)
+    Time += 5;
+    if(Time == 500)
     {
-        time = 0;
+        Time = 0;
     }
 }
 
@@ -163,11 +155,6 @@ void opcontrol()
     lv_label_set_text(label, "test");
     lv_obj_align(label, NULL, LV_ALIGN_CENTER, 0, 0);
 
-    //lock the loaders down when the program starts.
-    loaderRot.move(-127);
-    pros::Task::delay(200);
-    loaderRot.move_velocity(0);
-
     while(true)
     {
         rightBack.move(controller.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_Y));
@@ -205,6 +192,7 @@ void opcontrol()
 void initialize()
 {
     loaderRot.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+    slideRot.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 }
 
 void disabled() {}
@@ -224,12 +212,12 @@ static void stack()
     slideRot.move_velocity(0);
 
     pros::Task::delay(500);
-    chassis.setMaxVelocity(15);
+    chassis->setMaxVelocity(15);
 
     leftLift.move(-90);
     rightLift.move(-90);
 
-    chassis.moveDistance(-1.5_ft);
+    chassis->moveDistance(-1.5_ft);
     leftLift.move(0);
     rightLift.move(0);
 }
@@ -241,7 +229,7 @@ static void skills()
 
 static void red()
 {
-    chassis.setMaxVelocity(30);
+    chassis->setMaxVelocity(30);
 
     loaderRot.move(127);
     pros::Task::delay(1400);
@@ -256,20 +244,20 @@ static void red()
     pros::Task::delay(800);
     loaderRot.move_velocity(0);
 
-    chassis.setMaxVelocity(60);
+    chassis->setMaxVelocity(60);
     leftLift.move(127);
     rightLift.move(127);
-    chassis.moveDistance(40_in);
+    chassis->moveDistance(40_in);
 
-    chassis.setMaxVelocity(110);
+    chassis->setMaxVelocity(110);
     leftLift.move(0);
     rightLift.move(0);
 
-    chassis.moveDistance(-17_in);
-    chassis.setMaxVelocity(80);
+    chassis->moveDistance(-17_in);
+    chassis->setMaxVelocity(80);
 
-    chassis.turnAngle(155_deg);
-    chassis.moveDistance(20_in);
+    chassis->turnAngle(155_deg);
+    chassis->moveDistance(20_in);
 
     stack();
 }
@@ -278,7 +266,7 @@ static void blue()
 {
     leftLift.move(-127);
     rightLift.move(-127);
-    chassis.setMaxVelocity(30);
+    chassis->setMaxVelocity(30);
 
     loaderRot.move(127);
     pros::Task::delay(1400);
@@ -297,24 +285,24 @@ static void blue()
 
 
 
-    chassis.setMaxVelocity(90);
+    chassis->setMaxVelocity(90);
     leftLift.move(127);
     rightLift.move(127);
-    chassis.moveDistance(8_in);
+    chassis->moveDistance(8_in);
 
-    chassis.setMaxVelocity(90);
+    chassis->setMaxVelocity(90);
     leftLift.move(0);
     rightLift.move(0);
-    chassis.resetSensors();
-    chassis.turnAngle(130_deg);
+
+    chassis->turnAngle(130_deg);
 
     leftLift.move(127);
     rightLift.move(127);
-    chassis.setMaxVelocity(90);
-    chassis.moveDistance(18_in);
+    chassis->setMaxVelocity(90);
+    chassis->moveDistance(18_in);
 
-    chassis.turnAngle(45_deg);
-    chassis.moveDistance(18_in);
+    chassis->turnAngle(45_deg);
+    chassis->moveDistance(18_in);
 
     stack();
 }
@@ -339,8 +327,8 @@ static void shitaton()
 }
 void autonomous()
 {
-  chassis.setMaxVelocity(90);
-  chassis.moveDistance(1_ft);
+  chassis->setMaxVelocity(90);
+  chassis->moveDistance(1_ft);
   pros::Task::delay(500);
 
 }
