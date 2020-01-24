@@ -6,7 +6,6 @@ static bool buttonPressed = false;
 static bool buttonToggle = false;
 
 //MOTORS
-
 const static pros::Motor rightBack(10, pros::E_MOTOR_GEARSET_18, true);
 const static pros::Motor rightFront(9, pros::E_MOTOR_GEARSET_18, true);
 
@@ -27,11 +26,10 @@ static pros::Controller controller(pros::E_CONTROLLER_MASTER);
 
 
 //pid chassis controller.
-auto chassis = ChassisControllerBuilder()
-    .withMotors({19, 20}, {-9, -10})
+static auto chassis = ChassisControllerBuilder()
+    .withMotors({19, 20}, {9, 10})
     // Green gearset, 4 in wheel diam, 11.5 in wheel track
-    .withDimensions(AbstractMotor::gearset::green, {{3_in, 10.25_in}, imev5GreenTPR})
-    .withGains({0.015, 0.0022, 0.0001}, {0.001, 0, 0.0001}, {0.015, 0.0022, 0.0001})
+    .withDimensions(AbstractMotor::gearset::green, {{3_in, 8.5_in}, imev5GreenTPR})
     .build();
 
 
@@ -108,23 +106,20 @@ static void pollLift()
 
     if(controller.get_digital(pros::E_CONTROLLER_DIGITAL_L2))
     {
-        if(!slow)
-            slideRot.move(127);
+        if(slideRot.get_position() < 1500)
+        {
+          slideRot.move(127);
+        }
         else
         {
-            slideRot.move(60);
+          slideRot.move(50);
         }
 
     }
     else
     if(controller.get_digital(pros::E_CONTROLLER_DIGITAL_R2))
     {
-        if(!slow)
-            slideRot.move(-127);
-        else
-        {
-            slideRot.move(-60);
-        }
+        slideRot.move(-100);
     }
     else
     if(!controller.get_digital(pros::E_CONTROLLER_DIGITAL_L2) && !controller.get_digital(pros::E_CONTROLLER_DIGITAL_R2) && !buttonToggle)
@@ -163,7 +158,7 @@ void opcontrol()
         rightFront.move(controller.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_Y));
         leftFront.move(controller.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y));
 
-        std::string temp  = "Lift Temp : " + std::to_string(slideRot.get_position());
+        std::string temp  = "Slide Temp : " + std::to_string(slideRot.get_position());
         lv_label_set_text(label, temp.c_str());
 
         pollLift();
@@ -205,14 +200,14 @@ static void stack()
     slideRot.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
     //zero the slide position
     slideRot.tare_position();
-    while(slideRot.get_position() >-2500)
+    while(slideRot.get_position() < 2800)
     {
         slideRot.move(80);
     }
     slideRot.move_velocity(0);
 
     pros::Task::delay(500);
-    chassis->setMaxVelocity(15);
+    chassis->setMaxVelocity(70);
 
     leftLift.move(-90);
     rightLift.move(-90);
@@ -229,106 +224,65 @@ static void skills()
 
 static void red()
 {
-    chassis->setMaxVelocity(30);
+  loaderRot.move(-50);
+  pros::Task::delay(220);
+  loaderRot.move_velocity(0);
+  chassis->setMaxVelocity(95);
+  leftLift.move(127);
+  rightLift.move(127);
+  chassis->moveDistance(3.9_ft);
 
-    loaderRot.move(127);
-    pros::Task::delay(1400);
-    loaderRot.move(-127);
+  leftLift.move(0);
+  rightLift.move(0);
+  chassis->setMaxVelocity(60);
 
-    leftBack.move(-127);
-    rightBack.move(-127);
-    pros::Task::delay(600);
-    leftBack.move(0);
-    rightBack.move(0);
+  chassis->turnAngle(138_deg);
+  chassis->setMaxVelocity(100);
 
-    pros::Task::delay(800);
-    loaderRot.move_velocity(0);
+  chassis->moveDistance(3.1_ft);
+  stack();
+}
 
-    chassis->setMaxVelocity(60);
-    leftLift.move(127);
-    rightLift.move(127);
-    chassis->moveDistance(40_in);
+static void redLeft()
+{
+  loaderRot.move(-50);
+  pros::Task::delay(220);
+  loaderRot.move_velocity(0);
+  chassis->setMaxVelocity(95);
+  leftLift.move(127);
+  rightLift.move(127);
+  chassis->moveDistance(1_ft);
+  leftLift.move(0);
+  rightLift.move(0);
+  chassis->turnAngle(65_deg);
+  chassis->setMaxVelocity(150);
 
-    chassis->setMaxVelocity(110);
-    leftLift.move(0);
-    rightLift.move(0);
+  chassis->moveDistance(3.8_ft);
+  chassis->setMaxVelocity(110);
 
-    chassis->moveDistance(-17_in);
-    chassis->setMaxVelocity(80);
+  chassis->turnAngle(-160_deg);
 
-    chassis->turnAngle(155_deg);
-    chassis->moveDistance(20_in);
+  leftLift.move(127);
+  rightLift.move(127);
+  chassis->setMaxVelocity(150);
 
-    stack();
+  chassis->moveDistance(2.35_ft);
+
+  chassis->turnAngle(-75_deg);
+
+  chassis->moveDistance(3.75_ft);
+
+  stack();
 }
 
 static void blue()
 {
-    leftLift.move(-127);
-    rightLift.move(-127);
-    chassis->setMaxVelocity(30);
 
-    loaderRot.move(127);
-    pros::Task::delay(1400);
-    loaderRot.move(-127);
-
-    leftBack.move(-127);
-    rightBack.move(-127);
-    pros::Task::delay(600);
-    leftBack.move(0);
-    rightBack.move(0);
-
-    pros::Task::delay(800);
-    loaderRot.move_velocity(0);
-    leftLift.move(0);
-    rightLift.move(0);
-
-
-
-    chassis->setMaxVelocity(90);
-    leftLift.move(127);
-    rightLift.move(127);
-    chassis->moveDistance(8_in);
-
-    chassis->setMaxVelocity(90);
-    leftLift.move(0);
-    rightLift.move(0);
-
-    chassis->turnAngle(130_deg);
-
-    leftLift.move(127);
-    rightLift.move(127);
-    chassis->setMaxVelocity(90);
-    chassis->moveDistance(18_in);
-
-    chassis->turnAngle(45_deg);
-    chassis->moveDistance(18_in);
-
-    stack();
 }
 
-static void shitaton()
-{
-  leftBack.move(127);
-  rightBack.move(127);
-  pros::Task::delay(1000);
-
-  leftBack.move(-127);
-  rightBack.move(-127);
-  leftFront.move(-127);
-  rightFront.move(-127);
-
-  pros::Task::delay(1000);
-
-  leftBack.move(0);
-  rightBack.move(0);
-  leftFront.move(0);
-  rightFront.move(0);
-}
 void autonomous()
 {
-  chassis->setMaxVelocity(90);
-  chassis->moveDistance(1_ft);
-  pros::Task::delay(500);
+
+red();
 
 }
