@@ -114,7 +114,6 @@ static void pollLift()
         {
           slideRot.move(60);
         }
-
     }
     else
     if(controller.get_digital(pros::E_CONTROLLER_DIGITAL_R2))
@@ -122,20 +121,27 @@ static void pollLift()
         slideRot.move(-100);
     }
     else
-    if(!controller.get_digital(pros::E_CONTROLLER_DIGITAL_L2) && !controller.get_digital(pros::E_CONTROLLER_DIGITAL_R2) && !buttonToggle)
+    if(!controller.get_digital(pros::E_CONTROLLER_DIGITAL_L2) && !controller.get_digital(pros::E_CONTROLLER_DIGITAL_R2) && !buttonToggle && !controller.get_digital(pros::E_CONTROLLER_DIGITAL_Y))
     {
         slideRot.move_velocity(0);
     }
 
-
     if(controller.get_digital(pros::E_CONTROLLER_DIGITAL_X))
     {
         loaderRot.move(127);
+        if(slideRot.get_position() > 100)
+        {
+          slideRot.move(-127);
+        }
     }
     else
     if(controller.get_digital(pros::E_CONTROLLER_DIGITAL_Y))
     {
         loaderRot.move(-127);
+        if(loaderRot.get_position() < -700 && (slideRot.get_position() < 800))
+        {
+          slideRot.move(80);
+        }
     }
     else
     if(!controller.get_digital(pros::E_CONTROLLER_DIGITAL_Y) && !controller.get_digital(pros::E_CONTROLLER_DIGITAL_X) && !buttonToggle)
@@ -158,7 +164,7 @@ void opcontrol()
         rightFront.move(controller.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_Y));
         leftFront.move(controller.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y));
 
-        std::string temp  = "Slide Temp : " + std::to_string(slideRot.get_position());
+        std::string temp  = "arm rot : " + std::to_string(slideRot.get_position());
         lv_label_set_text(label, temp.c_str());
 
         pollLift();
@@ -188,11 +194,14 @@ void initialize()
 {
     loaderRot.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
     slideRot.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+    
     imu.reset();
     while(imu.is_calibrating())
     {
         pros::Task::delay(10);
     }
+    pros::Task::delay(2000);
+    
 }
 
 void disabled() {}
@@ -376,10 +385,6 @@ static void blue()
 
   chassis->setMaxVelocity(95);
   
-  loaderRot.move(-50);
-  pros::Task::delay(190);
-  loaderRot.move_velocity(0);
-  
   leftLift.move(127);
   rightLift.move(127);
   chassis->moveDistance(3.2_ft);
@@ -403,7 +408,7 @@ static void blue()
       break;
   }
 
-  while(imu.get_heading() > 220)
+  while(imu.get_heading() > 230)
   {
     static int test = 0;
     if(test == 100)
@@ -432,23 +437,21 @@ static void blue()
   leftLift.move(100);
   rightLift.move(100);
 
-  chassis->moveDistance(2.9_ft);
+  chassis->moveDistance(2.25_ft);
   
 
-  rightBack.move(-60);
-rightFront.move(-60);
+ 
+    leftBack.move(60);
+    leftFront.move(60);
 
-    leftBack.move(50);
-    leftFront.move(50);
-
-    pros::Task::delay(350);
+    pros::Task::delay(400);
 
 
   rightBack.move(60);
 rightFront.move(60);
 
-    leftBack.move(50);
-    leftFront.move(50);
+    leftBack.move(60);
+    leftFront.move(60);
 
     pros::Task::delay(250);
      leftLift.move(0);
@@ -467,9 +470,9 @@ rightFront.move(60);
   stack();
 }
 
-void autonomous()
+static void one()
 {
-    leftLift.move(-127);
+  leftLift.move(-127);
   rightLift.move(-127);
   pros::Task::delay(1700);
 
@@ -498,7 +501,11 @@ void autonomous()
     leftFront.move(0);
 
     leftLift.move(0);
-  rightLift.move(0);
-
+  rightLift.move(0); 
+}
+void autonomous()
+{
+    
+blue();
 
 }
