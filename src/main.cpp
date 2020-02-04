@@ -23,6 +23,7 @@ const static pros::Motor loaderRot(11, pros::E_MOTOR_GEARSET_36, true);
 
 //main controller object
 static pros::Controller controller(pros::E_CONTROLLER_MASTER);
+static pros::Controller partner(pros::E_CONTROLLER_PARTNER);
 
 pros::Imu imu(7);
 //pid chassis controller.
@@ -38,104 +39,208 @@ static auto chassis = ChassisControllerBuilder()
 static int isTime = 0;
 static int Time = 0;
 
-static void controllerPoll()
+static void controllerPoll(const bool masterEnable)
 {
     if(isTime == 45000)
     {
+      if(masterEnable)
         controller.rumble(". . .");
+      else
+        partner.rumble(". . .");
     }
     else
     if(isTime == 75000)
     {
+      if(masterEnable)
         controller.rumble("- -");
+      else
+        partner.rumble("- -");
     }
     isTime += 10;
     Time += 5;
     if(Time == 500)
     {
-        Time = 0;
+      Time = 0;
     }
 }
 
 //a function that polls the controller for all mechanism related input like the loaders, slide, and arms.
-static void pollLift()
+static void pollLift(const bool masterEnable)
 {
+  //start of master
+  if(masterEnable)
+  {
     static bool slow = false;
     if(controller.get_digital(pros::E_CONTROLLER_DIGITAL_DOWN))
-        slow = true;
+      slow = true;
     else
     if(controller.get_digital(pros::E_CONTROLLER_DIGITAL_UP))
-        slow = false;
+      slow = false;
 
     //if the left top buttton, move lift down
     if(controller.get_digital(pros::E_CONTROLLER_DIGITAL_R1) && !controller.get_digital(pros::E_CONTROLLER_DIGITAL_L1))
     {
-        if(!slow)
-        {
-            leftLift.move(127);
-            rightLift.move(127);
-        }
-        else
-        {
-            leftLift.move(65);
-            rightLift.move(65);
-        }
+      if(!slow)
+      {
+        leftLift.move(127);
+        rightLift.move(127);
+      }
+      else
+      {
+        leftLift.move(65);
+        rightLift.move(65);
+      }
     }
     else
     //if the right top button, move lift up
     if(!controller.get_digital(pros::E_CONTROLLER_DIGITAL_R1) && controller.get_digital(pros::E_CONTROLLER_DIGITAL_L1))
     {
-        if(!slow)
-        {
-            leftLift.move(-127);
-            rightLift.move(-127);
-        }
-        else
-        {
-            leftLift.move(-65);
-            rightLift.move(-65);
-        }
+      if(!slow)
+      {
+        leftLift.move(-127);
+        rightLift.move(-127);
+      }
+      else
+      {
+        leftLift.move(-65);
+        rightLift.move(-65);
+      }
     }
     else
     //if no life related input, make the lift hold it's position, (Hold brake mode)
     if(!controller.get_digital(pros::E_CONTROLLER_DIGITAL_L1) && !controller.get_digital(pros::E_CONTROLLER_DIGITAL_R1))
     {
-        leftLift.move(0);
-        rightLift.move(0);
+      leftLift.move(0);
+      rightLift.move(0);
     }
 
     if(controller.get_digital(pros::E_CONTROLLER_DIGITAL_L2))
     {
-        if(slideRot.get_position() < 1500)
-        {
-          slideRot.move(127);
-        }
-        else
-        {
-          slideRot.move(60);
-        }
+      if(slideRot.get_position() < 1500)
+      {
+        slideRot.move(127);
+      }
+      else
+      {
+        slideRot.move(60);
+      }
     }
     else
     if(controller.get_digital(pros::E_CONTROLLER_DIGITAL_R2))
     {
-        slideRot.move(-100);
+      slideRot.move(-100);
     }
     else
     if(!controller.get_digital(pros::E_CONTROLLER_DIGITAL_L2) && !controller.get_digital(pros::E_CONTROLLER_DIGITAL_R2) && !buttonToggle && !controller.get_digital(pros::E_CONTROLLER_DIGITAL_Y))
     {
-        slideRot.move_velocity(0);
+      slideRot.move_velocity(0);
     }
 
     if(controller.get_digital(pros::E_CONTROLLER_DIGITAL_X))
     {
-        loaderRot.move(127);
-        if(slideRot.get_position() > 100)
-        {
-          slideRot.move(-127);
-        }
+      loaderRot.move(127);
+      if(slideRot.get_position() > 100)
+      {
+        slideRot.move(-127);
+      }
     }
     else
     if(controller.get_digital(pros::E_CONTROLLER_DIGITAL_Y))
+    {
+      loaderRot.move(-127);
+      if(loaderRot.get_position() < -700 && (slideRot.get_position() < 800))
+      {
+        slideRot.move(80);
+      }
+    }
+    else
+    if(!controller.get_digital(pros::E_CONTROLLER_DIGITAL_Y) && !controller.get_digital(pros::E_CONTROLLER_DIGITAL_X) && !buttonToggle)
+    {
+        loaderRot.move_velocity(0);
+    }
+  }
+  //end of master
+
+  //start of partner
+  if(!masterEnable)
+  {
+    static bool slow = false;
+    
+    if(partner.get_digital(pros::E_CONTROLLER_DIGITAL_DOWN))
+      slow = true;
+    else
+    if(partner.get_digital(pros::E_CONTROLLER_DIGITAL_UP))
+      slow = false;
+
+    //if the left top buttton, move lift down
+    if(partner.get_digital(pros::E_CONTROLLER_DIGITAL_R1) && !partner.get_digital(pros::E_CONTROLLER_DIGITAL_L1))
+    {
+      if(!slow)
+      {
+        leftLift.move(127);
+        rightLift.move(127);
+      }
+      else
+      {
+        leftLift.move(65);
+        rightLift.move(65);
+      }
+    }
+    else
+    //if the right top button, move lift up
+    if(!partner.get_digital(pros::E_CONTROLLER_DIGITAL_R1) && partner.get_digital(pros::E_CONTROLLER_DIGITAL_L1))
+    {
+      if(!slow)
+      {
+        leftLift.move(-127);
+        rightLift.move(-127);
+      }
+      else
+      {
+        leftLift.move(-65);
+        rightLift.move(-65);
+      }
+    }
+    else
+    //if no life related input, make the lift hold it's position, (Hold brake mode)
+    if(!partner.get_digital(pros::E_CONTROLLER_DIGITAL_L1) && !partner.get_digital(pros::E_CONTROLLER_DIGITAL_R1))
+    {
+      leftLift.move(0);
+      rightLift.move(0);
+    }
+
+    if(partner.get_digital(pros::E_CONTROLLER_DIGITAL_L2))
+    {
+      if(slideRot.get_position() < 1500)
+      {
+        slideRot.move(127);
+      }
+      else
+      {
+        slideRot.move(60);
+      }
+    }
+    else
+    if(partner.get_digital(pros::E_CONTROLLER_DIGITAL_R2))
+    {
+      slideRot.move(-100);
+    }
+    else
+    if(!partner.get_digital(pros::E_CONTROLLER_DIGITAL_L2) && !partner.get_digital(pros::E_CONTROLLER_DIGITAL_R2) && !buttonToggle && !partner.get_digital(pros::E_CONTROLLER_DIGITAL_Y))
+    {
+      slideRot.move_velocity(0);
+    }
+
+    if(partner.get_digital(pros::E_CONTROLLER_DIGITAL_X))
+    {
+      loaderRot.move(127);
+      if(slideRot.get_position() > 100)
+      {
+        slideRot.move(-127);
+      }
+    }
+    else
+    if(partner.get_digital(pros::E_CONTROLLER_DIGITAL_Y))
     {
         loaderRot.move(-127);
         if(loaderRot.get_position() < -700 && (slideRot.get_position() < 800))
@@ -144,10 +249,12 @@ static void pollLift()
         }
     }
     else
-    if(!controller.get_digital(pros::E_CONTROLLER_DIGITAL_Y) && !controller.get_digital(pros::E_CONTROLLER_DIGITAL_X) && !buttonToggle)
+    if(!partner.get_digital(pros::E_CONTROLLER_DIGITAL_Y) && !partner.get_digital(pros::E_CONTROLLER_DIGITAL_X) && !buttonToggle)
     {
-        loaderRot.move_velocity(0);
+      loaderRot.move_velocity(0);
     }
+  }
+  //end of partner
 }
 
 void opcontrol()
@@ -155,52 +262,67 @@ void opcontrol()
     lv_obj_t* label = lv_label_create(lv_scr_act(), NULL);
     lv_label_set_text(label, "test");
     lv_obj_align(label, NULL, LV_ALIGN_CENTER, 0, 0);
+    static bool masterEnable = true;
 
     while(true)
     {
+      if(controller.get_digital(pros::E_CONTROLLER_DIGITAL_LEFT))
+      {
+        masterEnable = false;
+      }
+      if(partner.get_digital(pros::E_CONTROLLER_DIGITAL_LEFT))
+      {
+        masterEnable = true;
+      }
+      if(masterEnable)
+      {
         rightBack.move(controller.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_Y));
         leftBack.move(controller.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y));
 
         rightFront.move(controller.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_Y));
         leftFront.move(controller.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y));
+      }
+      else
+      {
+        rightBack.move(partner.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_Y));
+        leftBack.move(partner.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y));
 
-        std::string temp  = "arm rot : " + std::to_string(slideRot.get_position());
-        lv_label_set_text(label, temp.c_str());
-
-        pollLift();
+        rightFront.move(partner.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_Y));
+        leftFront.move(partner.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y));
+      }
+      
+        pollLift(masterEnable);
 
         if(controller.get_digital(pros::E_CONTROLLER_DIGITAL_L2))
         {
-            if(!buttonPressed)
-            {
-                buttonToggle = 1 - buttonToggle;
-                buttonPressed = 1;
-                buttonToggle = false;
-            }
+          if(!buttonPressed)
+          {
+              buttonToggle = 1 - buttonToggle;
+              buttonPressed = 1;
+              buttonToggle = false;
+          }
         }
         else
-            buttonPressed = 0;
+          buttonPressed = 0;
 
-        if(buttonToggle)
-        {
-            slideRot.move(controller.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y));
-        }
-        controllerPoll();
+        controllerPoll(masterEnable);
+        std::string temp  = "arm rot : " + std::to_string(slideRot.get_position());
+        lv_label_set_text(label, temp.c_str());
         pros::Task::delay(10);
     }
 }
 
 void initialize()
 {
-    loaderRot.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
-    slideRot.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
-    
-    imu.reset();
-    while(imu.is_calibrating())
-    {
-        pros::Task::delay(10);
-    }
-    pros::Task::delay(2000);
+  loaderRot.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+  slideRot.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+  
+  imu.reset();
+  while(imu.is_calibrating())
+  {
+    pros::Task::delay(10);
+  }
+  pros::Task::delay(2000);
     
 }
 
@@ -211,35 +333,35 @@ void competition_initialize() {}
 //aton function for actually stacking the cubes
 static void stack()
 {
-    slideRot.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
-    //zero the slide position
-    slideRot.tare_position();
-    while(slideRot.get_position() < 3050)
-    {
-        slideRot.move(80);
-    }
-    slideRot.move_velocity(0);
+  slideRot.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+  //zero the slide position
+  slideRot.tare_position();
+  while(slideRot.get_position() < 3050)
+  {
+      slideRot.move(80);
+  }
+  slideRot.move_velocity(0);
 
-    pros::Task::delay(500);
+  pros::Task::delay(500);
 
-    leftLift.move(-110);
-    rightLift.move(-110);
+  leftLift.move(-110);
+  rightLift.move(-110);
 
-    rightBack.move(-60);
-    rightFront.move(-60);
+  rightBack.move(-60);
+  rightFront.move(-60);
 
-    leftBack.move(-60);
-    leftFront.move(-60);
+  leftBack.move(-60);
+  leftFront.move(-60);
 
-    pros::Task::delay(1000);
+  pros::Task::delay(1000);
 
-    rightBack.move_velocity(0);
-    rightFront.move_velocity(0);
+  rightBack.move_velocity(0);
+  rightFront.move_velocity(0);
 
-    leftBack.move_velocity(0);
-    leftFront.move_velocity(0);
-    leftLift.move(0);
-    rightLift.move(0);
+  leftBack.move_velocity(0);
+  leftFront.move_velocity(0);
+  leftLift.move(0);
+  rightLift.move(0);
 }
 
 static void skills()
@@ -261,7 +383,7 @@ static void red()
   pros::Task::delay(1100);
   leftLift.move(0);
   rightLift.move(0);
-    pros::Task::delay(600);
+  pros::Task::delay(600);
 
 
   rightBack.move(0);
@@ -288,6 +410,7 @@ static void red()
 
   leftBack.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
   leftFront.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
+
   while(imu.get_heading() > 20)
   {
     rightBack.move(-55);
@@ -330,30 +453,29 @@ static void red()
 
   chassis->moveDistance(2.9_ft);
   
+  rightBack.move(50);
+  rightFront.move(50);
 
-    rightBack.move(50);
-    rightFront.move(50);
+  leftBack.move(-50);
+  leftFront.move(-50);
 
-    leftBack.move(-50);
-    leftFront.move(-50);
-
-    pros::Task::delay(500);
+  pros::Task::delay(500);
 
 
-    rightBack.move(50);
-    rightFront.move(50);
+  rightBack.move(50);
+  rightFront.move(50);
 
-    leftBack.move(50);
-    leftFront.move(50);
+  leftBack.move(50);
+  leftFront.move(50);
 
-    pros::Task::delay(250);
-    leftLift.move(0);
-    rightLift.move(0);
-    pros::Task::delay(250);
+  pros::Task::delay(250);
+  leftLift.move(0);
+  rightLift.move(0);
+  pros::Task::delay(250);
 
 
     
-    rightBack.move(0);
+  rightBack.move(0);
   rightFront.move(0);
 
   leftBack.move(0);
@@ -365,12 +487,11 @@ static void red()
 
 static void blue()
 {
-    rightBack.move(-127);
+  rightBack.move(-127);
   rightFront.move(-127);
 
   leftBack.move(-127);
   leftFront.move(-127);
-
 
   leftLift.move(-127);
   rightLift.move(-127);
@@ -381,7 +502,6 @@ static void blue()
 
   leftBack.move(0);
   leftFront.move(0);
-
 
   chassis->setMaxVelocity(95);
   
@@ -397,6 +517,7 @@ static void blue()
 
   leftBack.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
   leftFront.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
+
   while(imu.get_heading() < 20)
   {
     rightBack.move(55);
@@ -439,28 +560,23 @@ static void blue()
 
   chassis->moveDistance(2.25_ft);
   
+  leftBack.move(60);
+  leftFront.move(60);
 
- 
-    leftBack.move(60);
-    leftFront.move(60);
-
-    pros::Task::delay(400);
-
+  pros::Task::delay(400);
 
   rightBack.move(60);
-rightFront.move(60);
+  rightFront.move(60);
 
-    leftBack.move(60);
-    leftFront.move(60);
+  leftBack.move(60);
+  leftFront.move(60);
 
-    pros::Task::delay(250);
-     leftLift.move(0);
+  pros::Task::delay(250);
+  leftLift.move(0);
   rightLift.move(0);
-        pros::Task::delay(250);
-
-
+  pros::Task::delay(250);
     
-    rightBack.move(0);
+  rightBack.move(0);
   rightFront.move(0);
 
   leftBack.move(0);
@@ -476,36 +592,33 @@ static void one()
   rightLift.move(-127);
   pros::Task::delay(1700);
 
-    rightBack.move(60);
-    rightFront.move(60);
+  rightBack.move(60);
+  rightFront.move(60);
 
-    leftBack.move(60);
-    leftFront.move(60);
+  leftBack.move(60);
+  leftFront.move(60);
 
-    pros::Task::delay(2000);
-
-  
-    rightBack.move(-60);
-    rightFront.move(-60);
-
-    leftBack.move(-60);
-    leftFront.move(-60);
-
-        pros::Task::delay(3000);
+  pros::Task::delay(2000);
 
 
-      rightBack.move(0);
-    rightFront.move(0);
+  rightBack.move(-60);
+  rightFront.move(-60);
 
-    leftBack.move(0);
-    leftFront.move(0);
+  leftBack.move(-60);
+  leftFront.move(-60);
 
-    leftLift.move(0);
+  pros::Task::delay(3000);
+
+  rightBack.move(0);
+  rightFront.move(0);
+
+  leftBack.move(0);
+  leftFront.move(0);
+
+  leftLift.move(0);
   rightLift.move(0); 
 }
 void autonomous()
-{
-    
-blue();
-
+{ 
+  blue();
 }
