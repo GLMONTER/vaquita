@@ -63,6 +63,25 @@
 extern "C" {
 #endif
 
+//MOTORS
+const extern pros::Motor rightBack;
+const extern pros::Motor rightFront;
+
+const extern pros::Motor leftFront;
+const extern pros::Motor leftBack;
+
+//lifter
+const extern pros::Motor leftLift;
+const extern pros::Motor rightLift;
+
+//slide rotation
+const extern pros::Motor slideRot;
+//loader rotation
+const extern pros::Motor loaderRot;
+
+extern pros::Controller controller;
+extern pros::Controller partner;
+
 
 void autonomous(void);
 void initialize(void);

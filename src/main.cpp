@@ -6,34 +6,24 @@ static bool buttonPressed = false;
 static bool buttonToggle = false;
 
 //MOTORS
-const static pros::Motor rightBack(10, pros::E_MOTOR_GEARSET_18, true);
-const static pros::Motor rightFront(9, pros::E_MOTOR_GEARSET_18, true);
+const pros::Motor rightBack(10, pros::E_MOTOR_GEARSET_18, true);
+const pros::Motor rightFront(9, pros::E_MOTOR_GEARSET_18, true);
 
-const static pros::Motor leftFront(19, pros::E_MOTOR_GEARSET_18, false);
-const static pros::Motor leftBack(20, pros::E_MOTOR_GEARSET_18, false);
+const pros::Motor leftFront(19, pros::E_MOTOR_GEARSET_18, false);
+const pros::Motor leftBack(20, pros::E_MOTOR_GEARSET_18, false);
 
 //lifter
-const static pros::Motor leftLift(12, pros::E_MOTOR_GEARSET_36, false);
-const static pros::Motor rightLift(2, pros::E_MOTOR_GEARSET_36, true);
+const pros::Motor leftLift(12, pros::E_MOTOR_GEARSET_36, false);
+const pros::Motor rightLift(2, pros::E_MOTOR_GEARSET_36, true);
 
 //slide rotation
-const static pros::Motor slideRot(1, pros::E_MOTOR_GEARSET_36, true);
+const pros::Motor slideRot(1, pros::E_MOTOR_GEARSET_36, true);
 //loader rotation
-const static pros::Motor loaderRot(11, pros::E_MOTOR_GEARSET_36, true);
+const pros::Motor loaderRot(11, pros::E_MOTOR_GEARSET_36, true);
 
 //main controller object
-static pros::Controller controller(pros::E_CONTROLLER_MASTER);
-static pros::Controller partner(pros::E_CONTROLLER_PARTNER);
-
-pros::Imu imu(7);
-//pid chassis controller.
-static auto chassis = ChassisControllerBuilder()
-    .withMotors({19, 20}, {9, 10})
-    // Green gearset, 4 in wheel diam, 11.5 in wheel track
-    .withDimensions(AbstractMotor::gearset::green, {{3_in, 8.5_in}, imev5GreenTPR})
-    .build();
-
-
+pros::Controller controller(pros::E_CONTROLLER_MASTER);
+pros::Controller partner(pros::E_CONTROLLER_PARTNER);
 
 //time variables for rumble sequence
 static int isTime = 0;
@@ -165,7 +155,7 @@ static void pollLift(const bool masterEnable)
   if(!masterEnable)
   {
     static bool slow = false;
-    
+
     if(partner.get_digital(pros::E_CONTROLLER_DIGITAL_DOWN))
       slow = true;
     else
@@ -259,9 +249,12 @@ static void pollLift(const bool masterEnable)
 
 void opcontrol()
 {
+    loaderRot.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+
     lv_obj_t* label = lv_label_create(lv_scr_act(), NULL);
     lv_label_set_text(label, "test");
     lv_obj_align(label, NULL, LV_ALIGN_CENTER, 0, 0);
+
     static bool masterEnable = true;
 
     while(true)
@@ -290,7 +283,7 @@ void opcontrol()
         rightFront.move(partner.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_Y));
         leftFront.move(partner.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y));
       }
-      
+
         pollLift(masterEnable);
 
         if(controller.get_digital(pros::E_CONTROLLER_DIGITAL_L2))
@@ -314,311 +307,24 @@ void opcontrol()
 
 void initialize()
 {
-  loaderRot.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+  //loaderRot.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
   slideRot.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
-  
+
+  extern pros::Imu imu;
   imu.reset();
   while(imu.is_calibrating())
   {
     pros::Task::delay(10);
   }
   pros::Task::delay(2000);
-    
 }
 
 void disabled() {}
 
 void competition_initialize() {}
 
-//aton function for actually stacking the cubes
-static void stack()
-{
-  slideRot.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
-  //zero the slide position
-  slideRot.tare_position();
-  while(slideRot.get_position() < 3050)
-  {
-      slideRot.move(80);
-  }
-  slideRot.move_velocity(0);
-
-  pros::Task::delay(500);
-
-  leftLift.move(-110);
-  rightLift.move(-110);
-
-  rightBack.move(-60);
-  rightFront.move(-60);
-
-  leftBack.move(-60);
-  leftFront.move(-60);
-
-  pros::Task::delay(1000);
-
-  rightBack.move_velocity(0);
-  rightFront.move_velocity(0);
-
-  leftBack.move_velocity(0);
-  leftFront.move_velocity(0);
-  leftLift.move(0);
-  rightLift.move(0);
-}
-
-static void skills()
-{
-
-}
-
-static void red()
-{
-  rightBack.move(-127);
-  rightFront.move(-127);
-
-  leftBack.move(-127);
-  leftFront.move(-127);
-
-
-  leftLift.move(-127);
-  rightLift.move(-127);
-  pros::Task::delay(1100);
-  leftLift.move(0);
-  rightLift.move(0);
-  pros::Task::delay(600);
-
-
-  rightBack.move(0);
-  rightFront.move(0);
-
-  leftBack.move(0);
-  leftFront.move(0);
-
-  chassis->setMaxVelocity(95);
-  
-  loaderRot.move(-50);
-  pros::Task::delay(190);
-  loaderRot.move_velocity(0);
-  
-  leftLift.move(127);
-  rightLift.move(127);
-  chassis->moveDistance(3.45_ft);
-
-  leftLift.move(0);
-  rightLift.move(0);
-
-  rightBack.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
-  rightFront.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
-
-  leftBack.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
-  leftFront.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
-
-  while(imu.get_heading() > 20)
-  {
-    rightBack.move(-55);
-    rightFront.move(-55);
-
-    leftBack.move(55);
-    leftFront.move(55);
-    if(imu.get_heading() < 20)
-      break;
-  }
-
-  while(imu.get_heading() < 145)
-  {
-    static int test = 0;
-    if(test == 100)
-    {
-      controller.print(0, 0, "%f", imu.get_heading());
-      test = 0;
-    }
-    else
-      test += 10;
-
-    rightBack.move(-55);
-    rightFront.move(-55);
-
-    leftBack.move(55);
-    leftFront.move(55);
-  }
-
-  rightBack.move_velocity(0);
-  rightFront.move_velocity(0);
-
-  leftBack.move_velocity(0);
-  leftFront.move_velocity(0);
-  pros::Task::delay(200);
-
-  chassis->setMaxVelocity(120);
-  leftLift.move(100);
-  rightLift.move(100);
-
-  chassis->moveDistance(2.9_ft);
-  
-  rightBack.move(50);
-  rightFront.move(50);
-
-  leftBack.move(-50);
-  leftFront.move(-50);
-
-  pros::Task::delay(500);
-
-
-  rightBack.move(50);
-  rightFront.move(50);
-
-  leftBack.move(50);
-  leftFront.move(50);
-
-  pros::Task::delay(250);
-  leftLift.move(0);
-  rightLift.move(0);
-  pros::Task::delay(250);
-
-
-    
-  rightBack.move(0);
-  rightFront.move(0);
-
-  leftBack.move(0);
-  leftFront.move(0);
-
-   
-  stack();
-}
-
-static void blue()
-{
-  rightBack.move(-127);
-  rightFront.move(-127);
-
-  leftBack.move(-127);
-  leftFront.move(-127);
-
-  leftLift.move(-127);
-  rightLift.move(-127);
-  pros::Task::delay(1700);
-
-  rightBack.move(0);
-  rightFront.move(0);
-
-  leftBack.move(0);
-  leftFront.move(0);
-
-  chassis->setMaxVelocity(95);
-  
-  leftLift.move(127);
-  rightLift.move(127);
-  chassis->moveDistance(3.2_ft);
-
-  leftLift.move(0);
-  rightLift.move(0);
-
-  rightBack.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
-  rightFront.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
-
-  leftBack.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
-  leftFront.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
-
-  while(imu.get_heading() < 20)
-  {
-    rightBack.move(55);
-    rightFront.move(55);
-
-    leftBack.move(-55);
-    leftFront.move(-55);
-    if(imu.get_heading() > 20)
-      break;
-  }
-
-  while(imu.get_heading() > 230)
-  {
-    static int test = 0;
-    if(test == 100)
-    {
-      controller.print(0, 0, "%f", imu.get_heading());
-      test = 0;
-    }
-    else
-      test += 10;
-
-    rightBack.move(60);
-    rightFront.move(60);
-
-    leftBack.move(-60);
-    leftFront.move(-60);
-  }
-
-  rightBack.move_velocity(0);
-  rightFront.move_velocity(0);
-
-  leftBack.move_velocity(0);
-  leftFront.move_velocity(0);
-  pros::Task::delay(200);
-
-  chassis->setMaxVelocity(120);
-  leftLift.move(100);
-  rightLift.move(100);
-
-  chassis->moveDistance(2.25_ft);
-  
-  leftBack.move(60);
-  leftFront.move(60);
-
-  pros::Task::delay(400);
-
-  rightBack.move(60);
-  rightFront.move(60);
-
-  leftBack.move(60);
-  leftFront.move(60);
-
-  pros::Task::delay(250);
-  leftLift.move(0);
-  rightLift.move(0);
-  pros::Task::delay(250);
-    
-  rightBack.move(0);
-  rightFront.move(0);
-
-  leftBack.move(0);
-  leftFront.move(0);
-
-   
-  stack();
-}
-
-static void one()
-{
-  leftLift.move(-127);
-  rightLift.move(-127);
-  pros::Task::delay(1700);
-
-  rightBack.move(60);
-  rightFront.move(60);
-
-  leftBack.move(60);
-  leftFront.move(60);
-
-  pros::Task::delay(2000);
-
-
-  rightBack.move(-60);
-  rightFront.move(-60);
-
-  leftBack.move(-60);
-  leftFront.move(-60);
-
-  pros::Task::delay(3000);
-
-  rightBack.move(0);
-  rightFront.move(0);
-
-  leftBack.move(0);
-  leftFront.move(0);
-
-  leftLift.move(0);
-  rightLift.move(0); 
-}
+extern void externAuton();
 void autonomous()
-{ 
-  blue();
+{
+  externAuton();
 }
