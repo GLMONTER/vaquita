@@ -123,7 +123,13 @@ static void pollLift(const bool masterEnable)
     else
     if(!controller.get_digital(pros::E_CONTROLLER_DIGITAL_L2) && !controller.get_digital(pros::E_CONTROLLER_DIGITAL_R2) && !buttonToggle && !controller.get_digital(pros::E_CONTROLLER_DIGITAL_Y))
     {
-      slideRot.move_velocity(0);
+      if(slideRot.get_position() < 400)
+      {
+        std::cout<<"test"<<std::endl;
+        slideRot.move(0);
+      }
+      else
+        slideRot.move_velocity(0);
     }
 
     if(controller.get_digital(pros::E_CONTROLLER_DIGITAL_X))
@@ -259,11 +265,13 @@ void opcontrol()
 
     while(true)
     {
-      if(controller.get_digital(pros::E_CONTROLLER_DIGITAL_LEFT))
+      lv_label_set_text(label, std::to_string(slideRot.get_position()).c_str());
+
+      if(controller.get_digital(pros::E_CONTROLLER_DIGITAL_LEFT) && partner.is_connected())
       {
         masterEnable = false;
       }
-      if(partner.get_digital(pros::E_CONTROLLER_DIGITAL_LEFT))
+      if(partner.get_digital(pros::E_CONTROLLER_DIGITAL_LEFT) && controller.is_connected())
       {
         masterEnable = true;
       }
@@ -310,12 +318,14 @@ void initialize()
   //loaderRot.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
   slideRot.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 
+/*
   extern pros::Imu imu;
   imu.reset();
   while(imu.is_calibrating())
   {
     pros::Task::delay(10);
   }
+  */
   pros::Task::delay(2000);
 }
 
