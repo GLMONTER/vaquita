@@ -47,7 +47,7 @@ static void stack()
     #endif
 
     #ifdef PID
-    slideRot.move(127);
+    slideRot.move(100);
     #endif
 
     if(slideRot.get_position() > 1500)
@@ -58,7 +58,7 @@ static void stack()
           slideRot.move(80);
           #endif
           #ifdef PID
-          slideRot.move(85);
+          slideRot.move(80);
           #endif
 
       }
@@ -77,7 +77,7 @@ static void stack()
   leftBack.move(-60);
   leftFront.move(-60);
 
-  pros::Task::delay(1000);
+  pros::Task::delay(800);
 
   rightBack.move_velocity(0);
   rightFront.move_velocity(0);
@@ -114,21 +114,11 @@ static void skills()
 
   chassis->moveDistance(8.2_ft);
 
-  leftLift.move(-127);
-  rightLift.move(-127);
-
-  pros::Task::delay(150);
-
-  leftLift.move(0);
-  rightLift.move(0);
-
   rightBack.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
   rightFront.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
 
   leftBack.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
   leftFront.set_brake_mode(pros::E_MOTOR_BRAKE_BRAKE);
-
-
   while(imu.get_heading() > 20)
   {
     rightBack.move(-55);
@@ -140,15 +130,54 @@ static void skills()
       break;
   }
 
-  while(imu.get_heading() < 20)
+  while(imu.get_heading() < 36)
   {
-    rightBack.move(-80);
-    rightFront.move(-80);
+    rightBack.move(-70);
+    rightFront.move(-70);
 
-    leftBack.move(80);
-    leftFront.move(80);
+    leftBack.move(70);
+    leftFront.move(70);
   }
 
+
+  chassis->moveDistance(2.9_ft);
+
+  leftLift.move(0);
+  rightLift.move(0);
+
+   rightBack.move(70);
+    rightFront.move(70);
+
+    leftBack.move(70);
+    leftFront.move(70);
+
+    pros::Task::delay(500);
+
+    rightBack.move(0);
+    rightFront.move(0);
+
+    leftBack.move(0);
+    leftFront.move(0);
+
+  stack();
+
+  chassis->setMaxVelocity(60);
+  chassis->turnAngle(132_deg);
+
+  chassis->setMaxVelocity(95);
+
+  while(slideRot.get_position() > 100)
+  {
+    slideRot.move(-127);
+  }
+
+    slideRot.move(0);
+
+  leftLift.move(127);
+  rightLift.move(127);
+
+  chassis->moveDistance(8.5_ft);
+  pros::Task::delay(50000);
   rightBack.move(90);
   rightFront.move(90);
 
@@ -204,7 +233,6 @@ static void red()
 
   while(imu.get_heading() > 20)
   {
-
     rightBack.move(-55);
     rightFront.move(-55);
 
