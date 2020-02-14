@@ -258,8 +258,12 @@ void opcontrol()
     loaderRot.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 
     lv_obj_t* label = lv_label_create(lv_scr_act(), NULL);
-    lv_label_set_text(label, "test");
+    lv_label_set_text(label, "slide");
     lv_obj_align(label, NULL, LV_ALIGN_CENTER, 0, 0);
+
+    lv_obj_t* labelA = lv_label_create(lv_scr_act(), NULL);
+    lv_label_set_text(labelA, "arm");
+    lv_obj_align(labelA, NULL, LV_ALIGN_CENTER, 0, 100);
 
     static bool masterEnable = true;
 
@@ -305,10 +309,13 @@ void opcontrol()
         }
         else
           buttonPressed = 0;
-
         controllerPoll(masterEnable);
-        std::string temp  = "arm rot : " + std::to_string(slideRot.get_position());
+        std::string temp  = "slide rot : " + std::to_string(slideRot.get_position());
         lv_label_set_text(label, temp.c_str());
+        temp = "arm rot : " + std::to_string(loaderRot.get_position());
+        lv_label_set_text(labelA, temp.c_str());
+
+
         pros::Task::delay(10);
     }
 }
