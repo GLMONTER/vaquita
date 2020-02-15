@@ -11,7 +11,7 @@ static auto chassis = ChassisControllerBuilder()
     .withDimensions(AbstractMotor::gearset::green, {{3_in, 8.5_in}, imev5GreenTPR})
     .withGains(
         {0.00175, 0, 0.0001}, // Distance controller gains
-        {0.00175, 0, 0.0001}, // Turn controller gains
+        {0.002, 0, 0.0001}, // Turn controller gains
         {0.00175, 0, 0.0001})  // Angle controller gains (helps drive straight)
     .build();
 
@@ -145,27 +145,27 @@ static void skills()
       break;
   }
 
-  while(imu.get_heading() < 37)
+  while(imu.get_heading() < 36.5)
   {
-    rightBack.move(-70);
-    rightFront.move(-70);
+    rightBack.move(-72);
+    rightFront.move(-72);
 
-    leftBack.move(70);
-    leftFront.move(70);
+    leftBack.move(72);
+    leftFront.move(72);
   }
 
-  chassis->moveDistance(2.9_ft);
+  chassis->moveDistance(2.75_ft);
 
   leftLift.move(0);
   rightLift.move(0);
 
-   rightBack.move(70);
-    rightFront.move(70);
+   rightBack.move(80);
+    rightFront.move(80);
 
-    leftBack.move(70);
-    leftFront.move(70);
+    leftBack.move(80);
+    leftFront.move(80);
 
-    pros::Task::delay(500);
+    pros::Task::delay(600);
 
     rightBack.move(0);
     rightFront.move(0);
@@ -175,16 +175,30 @@ static void skills()
 
   stack();
   slideRot.move_relative(-2900, 150);
-  chassis->moveDistance(-0.60_ft);
-  chassis->setMaxVelocity(70);
-  chassis->turnAngle(-152_deg);
+  chassis->moveDistance(-0.50_ft);
+  chassis->setMaxVelocity(85);
 
+  while(imu.get_yaw() > -76)
+  {
+    rightBack.move(40);
+    rightFront.move(40);
+
+    leftBack.move(-40);
+    leftFront.move(-40);
+  }
+
+  rightBack.move_velocity(0);
+  rightFront.move_velocity(0);
+  leftBack.move_velocity(0);
+  leftFront.move_velocity(0);
+
+  pros::Task::delay(1000);
   startLoaders(false);
 
-  chassis->moveDistance(1.3_ft);
+  chassis->moveDistance(1.6_ft);
   chassis->moveDistance(-0.75_ft);
   startLoaders(true);
-  pros::Task::delay(310);
+  pros::Task::delay(400);
 
   stopLoaders();
 
@@ -199,15 +213,28 @@ static void skills()
   stopLoaders();
   chassis->setMaxVelocity(90);
 
-  chassis->moveDistance(-1.5_ft);
+  chassis->moveDistance(-1.6_ft);
 
   pros::Task::delay(1000);
-  chassis->turnAngle(-93_deg);
+
+  while(imu.get_yaw() > -167)
+  {
+    rightBack.move(40);
+    rightFront.move(40);
+
+    leftBack.move(-40);
+    leftFront.move(-40);
+  }
+
+  rightBack.move_velocity(0);
+  rightFront.move_velocity(0);
+  leftBack.move_velocity(0);
+  leftFront.move_velocity(0);
 
   startLoaders(false);
   slideRot.move_relative(-900, 150);
   loaderRot.move_relative(2400, 150);
-  chassis->moveDistance(2.25_ft);
+  chassis->moveDistance(2.5_ft);
   stopLoaders();
   chassis->moveDistanceAsync(-0.75_ft);
   startLoaders(true);
@@ -220,11 +247,13 @@ static void skills()
 
   chassis->waitUntilSettled();
 
-  chassis->moveDistance(0.5_ft);
+  chassis->moveDistance(0.65_ft);
 
   startLoaders(true);
   pros::Task::delay(2000);
   stopLoaders();
+
+  chassis->moveDistance(-1.5_ft);
 }
 
 static void red()
