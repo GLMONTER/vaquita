@@ -108,7 +108,7 @@ static void pollLift()
     if(controller.get_digital(pros::E_CONTROLLER_DIGITAL_Y))
     {
       loaderRot.move(-127);
-      if(loaderRot.get_position() < -700 && (slideRot.get_position() < 800))
+      if(loaderRot.get_position() < -1300 && (slideRot.get_position() < 600))
       {
         slideRot.move(80);
       }
