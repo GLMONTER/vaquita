@@ -8,10 +8,10 @@ MotorGroup rightDrive({9, 10});
 
 //pid chassis controller.
 static auto chassis = ChassisControllerBuilder()
-    .withMotors({19, 20}, {9, 10})
+    .withMotors(2, -1, -12, 21)
     
     // Green gearset, 4 in wheel diam, 11.5 in wheel track
-    .withDimensions(AbstractMotor::gearset::green, {{3_in, 7.5_in}, imev5GreenTPR})
+    .withDimensions(AbstractMotor::gearset::green, {{4_in, 13.5_in}, imev5GreenTPR})
     .withGains(
         {0.0025, 0.0005, 0.0001}, // Distance controller gains
         {0.003, 0, 0.0001}, // Turn controller gains
@@ -810,7 +810,34 @@ rightBack.move(-50);
   rightLift.move(0);
   stack();
 }
+static void stopMoters()
+{
+  rightBack.move(0);
+  rightFront.move(0);
+
+  leftBack.move(0);
+  leftFront.move(0);
+}
+static void strafeLeft(const unsigned int speed)
+{
+  rightFront.move(speed);
+  rightBack.move(speed * -1);
+
+  leftFront.move(speed * -1);
+  leftBack.move(speed);
+}
+
+static void strafeRight(const unsigned int speed)
+{
+  rightFront.move(speed * -1);
+  rightBack.move(speed);
+
+  leftFront.move(speed);
+  leftBack.move(speed * -1);
+}
 void externAuton()
 {
-  blue();
+  chassis->moveDistance(1_ft);
+  pros::Task::delay(1000);
+  stopMoters();
 }

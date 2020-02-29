@@ -1,25 +1,25 @@
 #include "main.h"
 #include"display/lvgl.h"
 
-//MOTORS
-const pros::Motor rightBack(10, pros::E_MOTOR_GEARSET_18, true);
-const pros::Motor rightFront(9, pros::E_MOTOR_GEARSET_18, true);
+const pros::Motor rightBack(12, pros::E_MOTOR_GEARSET_18, true);
+const pros::Motor rightFront(1, pros::E_MOTOR_GEARSET_18, true);
 
-const pros::Motor leftFront(19, pros::E_MOTOR_GEARSET_18, false);
-const pros::Motor leftBack(20, pros::E_MOTOR_GEARSET_18, false);
+const pros::Motor leftBack(21, pros::E_MOTOR_GEARSET_18, false);
+const pros::Motor leftFront(2, pros::E_MOTOR_GEARSET_18, false);
+
 
 //lifter
-const pros::Motor leftLift(12, pros::E_MOTOR_GEARSET_36, false);
-const pros::Motor rightLift(2, pros::E_MOTOR_GEARSET_36, true);
+const pros::Motor leftLift(10, pros::E_MOTOR_GEARSET_36, false);
+const pros::Motor rightLift(18, pros::E_MOTOR_GEARSET_36, true);
 
 //slide rotation
-const pros::Motor slideRot(1, pros::E_MOTOR_GEARSET_36, true);
+const pros::Motor slideRot(19, pros::E_MOTOR_GEARSET_36, true);
 //loader rotation
-const pros::Motor loaderRot(11, pros::E_MOTOR_GEARSET_36, true);
+const pros::Motor loaderRot(20, pros::E_MOTOR_GEARSET_36, true);
 
 //main controller object
 pros::Controller controller(pros::E_CONTROLLER_MASTER);
-pros::Controller partner(pros::E_CONTROLLER_PARTNER);
+	#define DEADZONE 10
 
 //time variables for rumble sequence
 static int isTime = 0;
@@ -70,19 +70,19 @@ static void pollLift()
 
     if(controller.get_digital(pros::E_CONTROLLER_DIGITAL_L2))
     {
-      if(slideRot.get_position() < 1500)
+      if(slideRot.get_position() > -2500)
       {
-        slideRot.move(127);
+        slideRot.move(-127);
       }
       else
       {
-        slideRot.move(75);
+        slideRot.move(-85);
       }
     }
     else
     if(controller.get_digital(pros::E_CONTROLLER_DIGITAL_R2))
     {
-      slideRot.move(-127);
+      slideRot.move(127);
     }
     else
     if(!controller.get_digital(pros::E_CONTROLLER_DIGITAL_L2) && !controller.get_digital(pros::E_CONTROLLER_DIGITAL_R2) && !controller.get_digital(pros::E_CONTROLLER_DIGITAL_Y))
@@ -99,18 +99,18 @@ static void pollLift()
     if(controller.get_digital(pros::E_CONTROLLER_DIGITAL_RIGHT))
     {
       loaderRot.move(127);
-      if(slideRot.get_position() > 100)
+      if(slideRot.get_position() < -100)
       {
-        slideRot.move(-127);
+        slideRot.move(127);
       }
     }
     else
     if(controller.get_digital(pros::E_CONTROLLER_DIGITAL_Y))
     {
       loaderRot.move(-127);
-      if(loaderRot.get_position() < -1300 && (slideRot.get_position() < 600))
+      if(loaderRot.get_position() > -250 && (slideRot.get_position() > -600))
       {
-        slideRot.move(80);
+        slideRot.move(-80);
       }
     }
     else
@@ -136,24 +136,32 @@ void opcontrol()
     {
       lv_label_set_text(label, std::to_string(slideRot.get_position()).c_str());
 
+      int Ch3 = controller.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y);
+      int Ch1 = controller.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_X);
+      int Ch4 = controller.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_X);
 
-        rightBack.move(controller.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_Y));
-        leftBack.move(controller.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y));
+      int LEFT_FRONT = Ch3 + Ch1 + Ch4;
+      int LEFT_BACK = Ch3 + Ch1 - Ch4;
 
-        rightFront.move(controller.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_Y));
-        leftFront.move(controller.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y));
+      int RIGHT_FRONT = Ch3 - Ch1 - Ch4;
+      int RIGHT_BACK = Ch3 - Ch1 + Ch4;
+  
+      leftFront = LEFT_FRONT;
+      leftBack = LEFT_BACK;
+
+      rightFront = RIGHT_FRONT;
+      rightBack = RIGHT_BACK;
+
+      pollLift();
+
+      controllerPoll();
+      std::string temp  = "slide rot : " + std::to_string(slideRot.get_position());
+      lv_label_set_text(label, temp.c_str());
+      temp = "arm rot : " + std::to_string(loaderRot.get_position());
+      lv_label_set_text(labelA, temp.c_str());
 
 
-        pollLift();
-
-        controllerPoll();
-        std::string temp  = "slide rot : " + std::to_string(slideRot.get_position());
-        lv_label_set_text(label, temp.c_str());
-        temp = "arm rot : " + std::to_string(loaderRot.get_position());
-        lv_label_set_text(labelA, temp.c_str());
-
-
-        pros::Task::delay(10);
+      pros::Task::delay(10);
     }
 }
 
