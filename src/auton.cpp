@@ -32,7 +32,7 @@ static auto chassis = ChassisControllerBuilder()
 */
 
 
-static void startLoaders(const bool reverse)
+ void startLoaders(const bool reverse)
 {
   if(!reverse)
   {

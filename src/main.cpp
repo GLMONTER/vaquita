@@ -24,7 +24,57 @@ pros::Controller controller(pros::E_CONTROLLER_MASTER);
 //time variables for rumble sequence
 static int isTime = 0;
 static int Time = 0;
+//aton function for actually stacking the cubes
+extern  void startLoaders(const bool reverse);
+static void stackDriver()
+{
+  slideRot.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+  //zero the slide position
+  slideRot.tare_position();
+  while(slideRot.get_position() > -4500)
+  {
+    if(slideRot.get_position() > -1000)
+      {
+        slideRot.move(-127);
+      }
+      if(slideRot.get_position() < -1500 && slideRot.get_position() > -2000)
+      {
+        slideRot.move(-90);
+      }
+      if(slideRot.get_position() < -2000 && slideRot.get_position() > -3500)
+      {
+        slideRot.move(-85);
+      }
+      if(slideRot.get_position() < -3500)
+      {
+        slideRot.move(-45);
+      }
+  }
+  pros::delay(1000);
+  slideRot.move_velocity(0);
+  slideRot.move(127);
+  
+    startLoaders(true);
 
+  pros::Task::delay(500);
+
+
+  rightBack.move(-50);
+  rightFront.move(-50);
+
+  leftBack.move(-50);
+  leftFront.move(-50);
+
+  pros::Task::delay(800);
+
+  rightBack.move_velocity(0);
+  rightFront.move_velocity(0);
+
+  leftBack.move_velocity(0);
+  leftFront.move_velocity(0);
+  leftLift.move(0);
+  rightLift.move(0);
+}
 static void controllerPoll()
 {
     if(isTime == 45000)
@@ -57,8 +107,17 @@ static void pollLift()
     //if the right top button, move lift up
     if(!controller.get_digital(pros::E_CONTROLLER_DIGITAL_R1) && controller.get_digital(pros::E_CONTROLLER_DIGITAL_L1))
     {
-      leftLift.move(-127);
-      rightLift.move(-127);
+      if(loaderRot.get_position() < -250)
+      {
+        leftLift.move(-70);
+        rightLift.move(-70);
+      }
+      else
+      {
+        leftLift.move(-127);
+        rightLift.move(-127);
+      }
+      
     }
     else
     //if no life related input, make the lift hold it's position, (Hold brake mode)
@@ -70,11 +129,15 @@ static void pollLift()
 
     if(controller.get_digital(pros::E_CONTROLLER_DIGITAL_L2))
     {
-      if(slideRot.get_position() > -2500)
+      if(slideRot.get_position() > -1000)
       {
         slideRot.move(-127);
       }
-      else
+      if(slideRot.get_position() < -1500 && slideRot.get_position() > -2000)
+      {
+        slideRot.move(-90);
+      }
+      if(slideRot.get_position() < -2000)
       {
         slideRot.move(-85);
       }
@@ -85,30 +148,35 @@ static void pollLift()
       slideRot.move(127);
     }
     else
-    if(!controller.get_digital(pros::E_CONTROLLER_DIGITAL_L2) && !controller.get_digital(pros::E_CONTROLLER_DIGITAL_R2) && !controller.get_digital(pros::E_CONTROLLER_DIGITAL_Y))
+    if(!controller.get_digital(pros::E_CONTROLLER_DIGITAL_L2) && !controller.get_digital(pros::E_CONTROLLER_DIGITAL_R2))
     {
-      if(slideRot.get_position() < 400)
+      if(!controller.get_digital(pros::E_CONTROLLER_DIGITAL_Y) && !controller.get_digital(pros::E_CONTROLLER_DIGITAL_RIGHT))
       {
-        std::cout<<"test"<<std::endl;
+      if(slideRot.get_position() > -300)
+      {
         slideRot.move(0);
       }
       else
         slideRot.move_velocity(0);
+      }
+      if(slideRot.get_position() < -900 && controller.get_digital(pros::E_CONTROLLER_DIGITAL_Y))
+        slideRot.move_velocity(0);
+
     }
 
     if(controller.get_digital(pros::E_CONTROLLER_DIGITAL_RIGHT))
     {
-      loaderRot.move(127);
-      if(slideRot.get_position() < -100)
-      {
-        slideRot.move(127);
-      }
+      loaderRot.move(80);
+     
+      slideRot.move(127);
     }
     else
     if(controller.get_digital(pros::E_CONTROLLER_DIGITAL_Y))
     {
+
       loaderRot.move(-127);
-      if(loaderRot.get_position() > -250 && (slideRot.get_position() > -600))
+      std::cout<<slideRot.get_position()<<std::endl;
+      if(slideRot.get_position() > -900)
       {
         slideRot.move(-80);
       }
@@ -136,28 +204,18 @@ void opcontrol()
     {
       lv_label_set_text(label, std::to_string(slideRot.get_position()).c_str());
 
-      int Ch3 = controller.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y);
-      int Ch1 = controller.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_X);
-      int Ch4 = controller.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_X);
+      leftFront.move(controller.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y));
+      leftBack.move(controller.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y));
+      rightFront.move(controller.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_Y));
+      rightBack.move(controller.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_Y));
 
-      int LEFT_FRONT = Ch3 + Ch1 + Ch4;
-      int LEFT_BACK = Ch3 + Ch1 - Ch4;
-
-      int RIGHT_FRONT = Ch3 - Ch1 - Ch4;
-      int RIGHT_BACK = Ch3 - Ch1 + Ch4;
-  
-      leftFront = LEFT_FRONT;
-      leftBack = LEFT_BACK;
-
-      rightFront = RIGHT_FRONT;
-      rightBack = RIGHT_BACK;
 
       pollLift();
 
       controllerPoll();
-      std::string temp  = "slide rot : " + std::to_string(slideRot.get_position());
+      std::string temp  = "right lift : " + std::to_string(rightLift.get_temperature());
       lv_label_set_text(label, temp.c_str());
-      temp = "arm rot : " + std::to_string(loaderRot.get_position());
+      temp = "lef lift : " + std::to_string(leftLift.get_temperature());
       lv_label_set_text(labelA, temp.c_str());
 
 
