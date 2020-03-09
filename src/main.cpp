@@ -154,36 +154,50 @@ void opcontrol()
 
     while(true)
     {
-      leftFront.move(controller.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y));
-      leftBack.move(controller.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y));
+      if(controller.get_digital(pros::E_CONTROLLER_DIGITAL_LEFT))
+      {
+        rightFront.move(100);
+        rightBack.move(100 * -1);
 
-      rightFront.move(controller.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_Y));
-      rightBack.move(controller.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_Y));
+        leftFront.move(100 * -1);
+        leftBack.move(100);
+      }
+      if(controller.get_digital(pros::E_CONTROLLER_DIGITAL_A))
+      {
+        rightFront.move(-100);
+        rightBack.move(100);
+
+        leftFront.move(100);
+        leftBack.move(-100);
+      }
+      if(!controller.get_digital(pros::E_CONTROLLER_DIGITAL_A) && !controller.get_digital(pros::E_CONTROLLER_DIGITAL_LEFT))
+      {
+        leftFront.move(controller.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y));
+        leftBack.move(controller.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y));
+
+        rightFront.move(controller.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_Y));
+        rightBack.move(controller.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_Y));
+      }
 
       pollMech();
       controllerPoll();
 
-      std::string temp  = "right lift : " + std::to_string(rightLift.get_temperature());
+      std::string temp  = "imu : " + std::to_string((int)imu.get_yaw());
       lv_label_set_text(label, temp.c_str());
-      temp = "lef lift : " + std::to_string(leftLift.get_temperature());
+      temp = "arm rot : " + std::to_string(loaderRot.get_position());
       lv_label_set_text(labelA, temp.c_str());
 
       pros::Task::delay(10);
+      
     }
 }
 
 void initialize()
 {
-  slideRot.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
-/*
-  extern pros::Imu imu;
   imu.reset();
-  while(imu.is_calibrating())
-  {
-    pros::Task::delay(10);
-  }
-  */
-  //pros::Task::delay(2000);
+  pros::Task::delay(2000);
+  slideRot.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+
 }
 
 void disabled() {}
